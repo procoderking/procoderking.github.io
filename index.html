@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Timer</title>
+    <link rel="stylesheet" href="main.css">
+</head>
+<body>
+    <button id="menu-button">Menu</button>
+    <div id="sidebar">
+        <div class="sidebar-content">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="scrambler.html">Scrambler</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="stopwatch">00:00:00.000</div>
+        <div id="stats">
+            <p>Mean Time: <span id="mean-time">--:--:--.---</span></p>
+            <p>Personal Best: <span id="personal-best">--:--:--.---</span></p>
+        </div>
+        <button id="reset-stats">Reset All Times</button>
+    </div>
+
+    <div id="times-list">
+        <h3>Your Times</h3>
+        <ul id="times-ul"></ul>
+    </div>
+
+    <script>
+        let timer;
+        let isRunning = false;
+        let startTime;
+        let elapsedTime = 0;
+        let pressStartTime;
+        let colorChangeTimeout;
+        let times = [];
+        let lastResetClick = 0;
+        let canStartOrReset = true;
+
+        const stopwatchElement = document.getElementById('stopwatch');
+        const meanTimeElement = document.getElementById('mean-time');
+        const personalBestElement = document.getElementById('personal-best');
+        const resetStatsButton = document.getElementById('reset-stats');
+        const timesListUl = document.getElementById('times-ul');
+
+        document.addEventListener('keydown', handleKeyDown);
+        document.addEventListener('keyup', handleKeyUp);
+        resetStatsButton.addEventListener('click', handleResetClick);
+
+        // Load saved times from localStorage
+        try {
+            times = JSON.parse(localStorage.getItem('stopwatchTimes')) || [];
+            updateTimesList();
+        } catch (error) {
+            console.error('Error loading times from localStorage:', error);
+            times = [];
+        }
+
+        function handleKeyDown(e) {
+            if (e.code === 'Space' && !pressStartTime) {
+                pressStartTime = Date.now();
+                if (isRunning) {
+                    stopStopwatch();
+                    stopwatchElement.style.color = 'red';
+                    canStartOrReset = false;
+                } else if (canStartOrReset) {
+                    colorChangeTimeout = setTimeout(() => {
+                        stopwatchElement.style.color = 'red';
+                    }, 100);
+                }
+                e.preventDefault();
+            }
+        }
+
+        function handleKeyUp(e) {
+            if (e.code === 'Space' && pressStartTime) {
+                clearTimeout(colorChangeTimeout);
+                const pressDuration = Date.now() - pressStartTime;
+                pressStartTime = null;
+
+                if (!isRunning && canStartOrReset) {
+                    if (pressDuration >= 1000) {
+                        startNewStopwatch();
+                    } else if (pressDuration >= 100) {
+                        resetStopwatch();
+                    }
+                }
+                stopwatchElement.style.color = 'black';
+                canStartOrReset = true;
+                e.preventDefault();
+            }
+        }
+
+        function startNewStopwatch() {
+            isRunning = true;
+            startTime = Date.now();
+            elapsedTime = 0;
+            timer = setInterval(updateDisplay, 10);
+            resetStatsButton.disabled = true;
+        }
+
+        function stopStopwatch() {
+            if (isRunning) {
+                isRunning = false;
+                clearInterval(timer);
+                elapsedTime = Date.now() - startTime;
+                times.push(elapsedTime);
+                localStorage.setItem('stopwatchTimes', JSON.stringify(times));
+                updateStats();
+                updateTimesList();
+                resetStatsButton.disabled = false;
+                updateDisplay(); // Ensure the final time is displayed
+            }
+        }
+
+        function resetStopwatch() {
+            elapsedTime = 0;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            if (isRunning) {
+                elapsedTime = Date.now() - startTime;
+            }
+            const formattedTime = formatTime(elapsedTime);
+            stopwatchElement.textContent = formattedTime;
+        }
+
+        function formatTime(ms) {
+            const date = new Date(ms);
+            const hours = date.getUTCHours().toString().padStart(2, '0');
+            const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+            const seconds = date.getUTCSeconds().toString().padStart(2, '0');
+            const milliseconds = date.getUTCMilliseconds().toString().padStart(3, '0');
+            return `${hours}:${minutes}:${seconds}.${milliseconds}`;
+        }
+
+        function updateStats() {
+            console.log('Updating stats');
+            if (times.length > 0) {
+                const mean = times.reduce((a, b) => a + b, 0) / times.length;
+                const personalBest = Math.min(...times);
+                meanTimeElement.textContent = formatTime(mean);
+                personalBestElement.textContent = formatTime(personalBest);
+            } else {
+                meanTimeElement.textContent = "--:--:--.---";
+                personalBestElement.textContent = "--:--:--.---";
+            }
+        }
+
+        function handleResetClick() {
+            console.log('Reset button clicked');
+            const currentTime = Date.now();
+            if (currentTime - lastResetClick < 1500) {
+                console.log('Double click detected, resetting all times');
+                resetAllTimes();
+            } else {
+                console.log('First click, waiting for second click');
+                lastResetClick = currentTime;
+                resetStatsButton.textContent = "Click again to confirm";
+                setTimeout(() => {
+                    resetStatsButton.textContent = "Reset All Times";
+                    lastResetClick = 0;
+                }, 1500);
+            }
+        }
+
+        function resetAllTimes() {
+            if (!isRunning) {
+                console.log('Resetting all times');
+                times = [];
+                try {
+                    localStorage.removeItem('stopwatchTimes');
+                } catch (error) {
+                    console.error('Error removing times from localStorage:', error);
+                }
+                updateStats();
+                updateTimesList();
+                resetStatsButton.textContent = "Reset All Times";
+                lastResetClick = 0;
+            } else {
+                console.log('Cannot reset times while timer is running');
+            }
+        }
+
+        function updateTimesList() {
+            timesListUl.innerHTML = '';
+            times.slice().reverse().forEach((time, index) => {
+                const li = document.createElement('li');
+                li.textContent = `${times.length - index}. ${formatTime(time)}`;
+                timesListUl.appendChild(li);
+            });
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !isRunning && canStartOrReset) {
+                setTimeout(() => {
+                    if (pressStartTime && Date.now() - pressStartTime >= 1000) {
+                        stopwatchElement.style.color = 'green';
+                    }
+                }, 1000);
+            }
+        });
+
+        // Initialize stats on page load
+        updateStats();
+        resetStatsButton.disabled = isRunning;
+
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.getElementById('sidebar');
+
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+    </script>
+</body>
+</html>
