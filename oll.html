@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OLL Algorithms</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .oll-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            cursor: pointer;
+            color: #000;
+            text-decoration: none;
+        }
+        .oll-title:hover {
+            text-decoration: none;
+        }
+        .oll-algorithm {
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+        }
+        #sidebar a {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            text-decoration: none;
+        }
+        #sidebar a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <button id="menu-button">Menu</button>
+    <div id="sidebar">
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="index.html">Timer</a></li>
+            <li><a href="scrambler.html">Scrambler</a></li>
+            <li><a href="simulator.html">Simulator</a></li>
+            <li><a href="algorithms.html">Algorithms</a></li>
+        </ul>
+    </div>
+    <div class="container">
+        <h1>OLL Algorithms</h1>
+        <a href="oll1.html" class="oll-title">OLL 1</a>
+        <div class="oll-algorithm">(R U2 R') (R' F R F') U2 (R' F R F')</div>
+    </div>
+
+    <script>
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.getElementById('sidebar');
+
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+    </script>
+</body>
+</html>
