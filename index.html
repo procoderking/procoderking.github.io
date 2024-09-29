@@ -5,16 +5,71 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rubik's Cube Timer</title>
     <link rel="stylesheet" href="main.css">
+    <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #stopwatch {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        #stats {
+            text-align: center;
+        }
+        #reset-stats {
+            display: block;
+            margin: 20px auto;
+        }
+        #times-list {
+            margin-top: 20px;
+        }
+        #times-ul {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-left: 20px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            #stopwatch {
+                font-size: 36px;
+            }
+            #times-ul {
+                padding-left: 0;
+                list-style-position: inside;
+            }
+        }
+        #sidebar a {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            text-decoration: none;
+        }
+        #sidebar a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
     <button id="menu-button">Menu</button>
     <div id="sidebar">
-        <div class="sidebar-content">
-            <h2>Menu</h2>
-            <ul>
-                <li><a href="scrambler.html">Scrambler</a></li>
-            </ul>
-        </div>
+        <h2>Menu</h2>
+        <ul>
+            <li><a href="scrambler.html">Scrambler</a></li>
+            <li><a href="simulator.html">Simulator</a></li>
+            <li><a href="algorithms.html">Algorithms</a></li>
+        </ul>
     </div>
 
     <div class="container">
@@ -26,7 +81,7 @@
         <button id="reset-stats">Reset All Times</button>
     </div>
 
-    <div id="times-list">
+    <div class="container" id="times-list">
         <h3>Your Times</h3>
         <ul id="times-ul"></ul>
     </div>
@@ -38,6 +93,7 @@
         let elapsedTime = 0;
         let pressStartTime;
         let colorChangeTimeout;
+        let greenTextTimeout;
         let times = [];
         let lastResetClick = 0;
         let canStartOrReset = true;
@@ -48,9 +104,57 @@
         const resetStatsButton = document.getElementById('reset-stats');
         const timesListUl = document.getElementById('times-ul');
 
-        document.addEventListener('keydown', handleKeyDown);
-        document.addEventListener('keyup', handleKeyUp);
-        resetStatsButton.addEventListener('click', handleResetClick);
+        function handleStart(e) {
+            if (e.type === 'keydown' && e.code !== 'Space') return;
+            if (e.type.startsWith('mouse') && e.button !== 0) return;
+            e.preventDefault();
+            if (!pressStartTime) {
+                pressStartTime = Date.now();
+                if (isRunning) {
+                    stopStopwatch();
+                    stopwatchElement.style.color = 'red';
+                    canStartOrReset = false;
+                } else if (canStartOrReset) {
+                    colorChangeTimeout = setTimeout(() => {
+                        stopwatchElement.style.color = 'red';
+                    }, 100);
+                    greenTextTimeout = setTimeout(() => {
+                        if (pressStartTime && Date.now() - pressStartTime >= 1000) {
+                            stopwatchElement.style.color = 'green';
+                        }
+                    }, 1000);
+                }
+            }
+        }
+
+        function handleEnd(e) {
+            if (e.type === 'keyup' && e.code !== 'Space') return;
+            if (e.type.startsWith('mouse') && e.button !== 0) return;
+            e.preventDefault();
+            if (pressStartTime) {
+                clearTimeout(colorChangeTimeout);
+                clearTimeout(greenTextTimeout);
+                const pressDuration = Date.now() - pressStartTime;
+                pressStartTime = null;
+
+                if (!isRunning && canStartOrReset) {
+                    if (pressDuration >= 1000) {
+                        startNewStopwatch();
+                    } else if (pressDuration >= 100) {
+                        resetStopwatch();
+                    }
+                }
+                stopwatchElement.style.color = 'black';
+                canStartOrReset = true;
+            }
+        }
+
+        document.addEventListener('keydown', handleStart);
+        document.addEventListener('keyup', handleEnd);
+        document.addEventListener('mousedown', handleStart);
+        document.addEventListener('mouseup', handleEnd);
+        document.addEventListener('touchstart', handleStart);
+        document.addEventListener('touchend', handleEnd);
 
         // Load saved times from localStorage
         try {
@@ -181,6 +285,7 @@
                 }
                 updateStats();
                 updateTimesList();
+                resetStopwatch();
                 resetStatsButton.textContent = "Reset All Times";
                 lastResetClick = 0;
             } else {
@@ -210,6 +315,7 @@
         // Initialize stats on page load
         updateStats();
         resetStatsButton.disabled = isRunning;
+        resetStatsButton.addEventListener('click', handleResetClick);
 
         const menuButton = document.getElementById('menu-button');
         const sidebar = document.getElementById('sidebar');

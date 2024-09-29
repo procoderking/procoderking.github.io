@@ -6,30 +6,48 @@
     <title>Rubik's Cube Scrambler</title>
     <link rel="stylesheet" href="main.css">
     <style>
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+        }
         .scrambler-container {
             text-align: center;
-            margin-top: 50px;
-            padding: 0 20px;
         }
         #scramble-output {
             font-size: 24px;
             margin: 20px 0;
             min-height: 100px;
             word-wrap: break-word;
-            max-width: 80vw;
-            margin-left: auto;
-            margin-right: auto;
         }
-        #move-count {
+        #move-count, #cube-type {
             width: 60px;
             text-align: center;
         }
         .controls {
             position: sticky;
-            top: 20px;
+            top: 0;
             background-color: white;
             padding: 10px 0;
-            z-index: 10;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+            #scramble-output {
+                font-size: 20px;
+            }
         }
     </style>
 </head>
@@ -40,6 +58,7 @@
             <h2>Menu</h2>
             <ul>
                 <li><a href="index.html">Timer</a></li>
+                <li><a href="simulator.html">Simulator</a></li>
             </ul>
         </div>
     </div>
@@ -47,6 +66,11 @@
     <div class="container scrambler-container">
         <h1>Rubik's Cube Scrambler</h1>
         <div class="controls">
+            <label for="cube-type">Cube Type: </label>
+            <select id="cube-type">
+                <option value="3x3">3x3</option>
+                <option value="4x4">4x4</option>
+            </select>
             <label for="move-count">Number of moves: </label>
             <input type="number" id="move-count" min="1" max="2000" value="20">
             <button id="new-scramble">New Scramble</button>
@@ -60,14 +84,17 @@
         const newScrambleButton = document.getElementById('new-scramble');
         const moveCountInput = document.getElementById('move-count');
         const scrambleOutput = document.getElementById('scramble-output');
+        const cubeTypeSelect = document.getElementById('cube-type');
 
         menuButton.addEventListener('click', () => {
             sidebar.classList.toggle('open');
         });
 
-        const moves = ['R', 'R\'', 'R2', 'L', 'L\'', 'L2', 'D', 'D\'', 'D2', 'F', 'F\'', 'F2', 'U', 'U\'', 'U2'];
+        const moves3x3 = ['R', 'R\'', 'R2', 'L', 'L\'', 'L2', 'D', 'D\'', 'D2', 'F', 'F\'', 'F2', 'U', 'U\'', 'U2'];
+        const moves4x4 = [...moves3x3, 'Uw', 'Dw', 'Rw', 'Lw', 'Fw', 'Bw', 'Uw\'', 'Dw\'', 'Rw\'', 'Lw\'', 'Fw\'', 'Bw\'', 'Uw2', 'Dw2', 'Rw2', 'Lw2', 'Fw2', 'Bw2'];
 
-        function generateScramble(moveCount) {
+        function generateScramble(moveCount, cubeType) {
+            const moves = cubeType === '3x3' ? moves3x3 : moves4x4;
             let scramble = [];
             let lastFace = '';
             for (let i = 0; i < moveCount; i++) {
@@ -84,24 +111,29 @@
 
         function updateScramble() {
             let moveCount = parseInt(moveCountInput.value);
-            moveCount = Math.min(Math.max(moveCount, 1), 3000); // Ensure moveCount is between 1 and 3000
+            moveCount = Math.min(Math.max(moveCount, 1), 2000); // Ensure moveCount is between 1 and 2000
             moveCountInput.value = moveCount; // Update input value if it was out of range
-            const scramble = generateScramble(moveCount);
+            const cubeType = cubeTypeSelect.value;
+            const scramble = generateScramble(moveCount, cubeType);
             scrambleOutput.textContent = scramble;
             localStorage.setItem('lastScramble', scramble);
             localStorage.setItem('lastMoveCount', moveCount);
+            localStorage.setItem('lastCubeType', cubeType);
         }
 
         newScrambleButton.addEventListener('click', updateScramble);
         moveCountInput.addEventListener('change', updateScramble);
+        cubeTypeSelect.addEventListener('change', updateScramble);
 
         // Load saved scramble on page load
         window.addEventListener('load', () => {
             const savedScramble = localStorage.getItem('lastScramble');
             const savedMoveCount = localStorage.getItem('lastMoveCount');
-            if (savedScramble && savedMoveCount) {
+            const savedCubeType = localStorage.getItem('lastCubeType');
+            if (savedScramble && savedMoveCount && savedCubeType) {
                 scrambleOutput.textContent = savedScramble;
                 moveCountInput.value = savedMoveCount;
+                cubeTypeSelect.value = savedCubeType;
             } else {
                 updateScramble();
             }
