@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Scrambler</title>
+    <link rel="stylesheet" href="main.css">
+    <style>
+        .scrambler-container {
+            text-align: center;
+            margin-top: 50px;
+            padding: 0 20px;
+        }
+        #scramble-output {
+            font-size: 24px;
+            margin: 20px 0;
+            min-height: 100px;
+            word-wrap: break-word;
+            max-width: 80vw;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #move-count {
+            width: 60px;
+            text-align: center;
+        }
+        .controls {
+            position: sticky;
+            top: 20px;
+            background-color: white;
+            padding: 10px 0;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <button id="menu-button">Menu</button>
+    <div id="sidebar">
+        <div class="sidebar-content">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="index.html">Timer</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="container scrambler-container">
+        <h1>Rubik's Cube Scrambler</h1>
+        <div class="controls">
+            <label for="move-count">Number of moves: </label>
+            <input type="number" id="move-count" min="1" max="2000" value="20">
+            <button id="new-scramble">New Scramble</button>
+        </div>
+        <div id="scramble-output"></div>
+    </div>
+
+    <script>
+        const menuButton = document.getElementById('menu-button');
+        const sidebar = document.getElementById('sidebar');
+        const newScrambleButton = document.getElementById('new-scramble');
+        const moveCountInput = document.getElementById('move-count');
+        const scrambleOutput = document.getElementById('scramble-output');
+
+        menuButton.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+        });
+
+        const moves = ['R', 'R\'', 'R2', 'L', 'L\'', 'L2', 'D', 'D\'', 'D2', 'F', 'F\'', 'F2', 'U', 'U\'', 'U2'];
+
+        function generateScramble(moveCount) {
+            let scramble = [];
+            let lastFace = '';
+            for (let i = 0; i < moveCount; i++) {
+                let move;
+                do {
+                    move = moves[Math.floor(Math.random() * moves.length)];
+                } while (move[0] === lastFace);
+                scramble.push(move);
+                lastFace = move[0];
+                if (move.endsWith('2')) i++; // Count '2' moves as two moves
+            }
+            return scramble.join(' ');
+        }
+
+        function updateScramble() {
+            let moveCount = parseInt(moveCountInput.value);
+            moveCount = Math.min(Math.max(moveCount, 1), 3000); // Ensure moveCount is between 1 and 3000
+            moveCountInput.value = moveCount; // Update input value if it was out of range
+            const scramble = generateScramble(moveCount);
+            scrambleOutput.textContent = scramble;
+            localStorage.setItem('lastScramble', scramble);
+            localStorage.setItem('lastMoveCount', moveCount);
+        }
+
+        newScrambleButton.addEventListener('click', updateScramble);
+        moveCountInput.addEventListener('change', updateScramble);
+
+        // Load saved scramble on page load
+        window.addEventListener('load', () => {
+            const savedScramble = localStorage.getItem('lastScramble');
+            const savedMoveCount = localStorage.getItem('lastMoveCount');
+            if (savedScramble && savedMoveCount) {
+                scrambleOutput.textContent = savedScramble;
+                moveCountInput.value = savedMoveCount;
+            } else {
+                updateScramble();
+            }
+        });
+    </script>
+</body>
+</html>

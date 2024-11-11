@@ -1,0 +1,134 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+#stopwatch {
+    font-size: 48px;
+    transition: color 0.3s ease;
+}
+
+#stats {
+    margin-top: 20px;
+    text-align: center;
+}
+
+#reset-stats {
+    margin-top: 10px;
+    padding: 5px 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+#reset-stats:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+#times-list {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 200px;
+    height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+}
+
+#times-list h3 {
+    margin-top: 0;
+}
+
+#times-list ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#times-list li {
+    margin-bottom: 5px;
+}
+
+#menu-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    padding: 10px 15px;
+    background-color: #333;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#sidebar {
+    position: fixed;
+    left: -250px;
+    top: 0;
+    width: 250px;
+    height: 100%;
+    background-color: #f1f1f1;
+    transition: left 0.3s ease;
+    z-index: 999;
+}
+
+#sidebar.open {
+    left: 0;
+}
+
+.sidebar-content {
+    padding: 60px 20px 20px;
+}
+
+#sidebar h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+#sidebar ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar ul li {
+    margin-bottom: 10px;
+}
+
+#sidebar ul li a {
+    text-decoration: none;
+    color: #333;
+    font-size: 18px;
+    display: block;
+    padding: 10px 0;
+}
+
+/* Styles for the scrambler page */
+.scrambler-container {
+    text-align: center;
+}
+
+.scrambler-container h1 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.scrambler-container p {
+    font-size: 18px;
+}
